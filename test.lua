@@ -49,13 +49,10 @@ for direction, node, level in cmark.walk(doc) do
 end
 --]]
 
-local writer = {}
-writer.mt = {}
-setmetatable(writer, writer.mt)
-writer.enter_DOCUMENT = function()
-   io.write("DOC!")
-end
-writer.mt.__index = function(table, key)
+local genericwriter = {}
+genericwriter.mt = {}
+setmetatable(genericwriter, genericwriter.mt)
+genericwriter.mt.__index = function(table, key)
    return function(node, level)
       key:gsub('([^_]*)_(.*)',
                function(direction, node_type)
@@ -73,16 +70,31 @@ writer.mt.__index = function(table, key)
       end)
    end
 end
-writer.start_TEXT = function(node)
-   io.write('{' .. cmark.node_get_string_content(node))
+
+local plainwriter = {}
+plainwriter.mt = {}
+setmetatable(plainwriter, plainwriter.mt)
+plainwriter.mt.__index = function(table, key)
+   return function(node, level)
+   end
 end
-writer.end_TEXT = function(node)
-   io.write('}\n')
+
+plainwriter.start_TEXT = function(node)
+   io.write(cmark.node_get_string_content(node))
+end
+plainwriter.end_TEXT = function(node)
+   io.write('\n')
+end
+
+
+for direction, node, level in cmark.walk(doc) do
+   local key = direction .. '_' .. type_table[tonumber(cmark.node_get_type(node))]
+   genericwriter[key](node, level)
 end
 
 for direction, node, level in cmark.walk(doc) do
    local key = direction .. '_' .. type_table[tonumber(cmark.node_get_type(node))]
-   writer[key](node, level)
+   plainwriter[key](node, level)
 end
 
 -- local html = cmark.render_html(doc)
