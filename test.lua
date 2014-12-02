@@ -31,17 +31,17 @@ local type_table = {
 }
 type_table[0] = 'DOCUMENT'
 
-local function print_type(node, level)
+local function print_type(direction, node, level)
    local t = tonumber(cmark.node_get_type(node))
-   io.write(string.rep('  ', level) .. type_table[t])
+   io.write(string.rep('  ', level) .. direction .. ' ' .. type_table[t])
    if t == cmark.NODE_TEXT then
       io.write(' ' .. ffi.string(cmark.node_get_string_content(node)))
    end
    io.write('\n')
 end
 
-for node, level in cmark.walk(doc) do
-   print_type(node, level)
+for direction, node, level in cmark.walk(doc) do
+   print_type(direction, node, level)
 end
 
 -- local html = ffi.string(cmark.render_html(doc))
