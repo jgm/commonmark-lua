@@ -5,6 +5,9 @@ local cmark = require("commonmark")
 local inp = io.read("*all")
 local doc = cmark.parse_document(inp, string.len(inp))
 
+-- TODO remove need for this
+ffi = require('ffi')
+
 local cur = doc
 local next
 local child
@@ -40,8 +43,36 @@ local function print_type(direction, node, level)
    io.write('\n')
 end
 
+--[[
 for direction, node, level in cmark.walk(doc) do
    print_type(direction, node, level)
+end
+--]]
+
+local writer = {}
+writer.mt = {}
+setmetatable(writer, writer.mt)
+
+writer.mt.__index = function(table, key)
+   return function(node)
+      local direction, kind = unpack(key)
+      local indent = string.rep('  ', level)
+      if direction == 'enter' then
+         io.write(indent .. '<' .. kind .. '>')
+         if kind == 'TEXT' then
+            io.write('\n' .. indent .. '  ' ..
+                        ffi.string(cmark.node_get_string_content(node)))
+         end
+      else
+         io.write(indent .. '</' .. kind .. '>')
+      end
+      io.write('\n')
+   end
+end
+
+for direction, node, level in cmark.walk(doc) do
+   local key = {direction, type_table[tonumber(cmark.node_get_type(node))]}
+   writer[key](node)
 end
 
 -- local html = ffi.string(cmark.render_html(doc))
