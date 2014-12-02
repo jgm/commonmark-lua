@@ -101,6 +101,7 @@ local compose = function(f,g)
    end
 end
 
+
 cmark.DOCUMENT      = c.CMARK_NODE_DOCUMENT
 cmark.BLOCK_QUOTE   = c.CMARK_NODE_BLOCK_QUOTE
 cmark.LIST          = c.CMARK_NODE_LIST
@@ -167,28 +168,54 @@ cmark.parse_document = c.cmark_parse_document
 cmark.render_ast = compose(ffi.string, c.cmark_render_ast)
 cmark.render_html = compose(ffi.string, c.cmark_render_html)
 
+local type_table = {
+   'block_quote',
+   'list',
+   'list_item',
+   'code_block',
+   'html',
+   'paragraph',
+   'header',
+   'hrule',
+   'reference_def',
+   'text',
+   'softbreak',
+   'linebreak',
+   'inline_code',
+   'inline_html',
+   'emph',
+   'strong',
+   'link',
+   'image',
+}
+type_table[0] = 'document'
+
+type_to_s = function(node)
+   return type_table[tonumber(c.cmark_node_get_type(node))]
+end
+
+-- return node type as string
+cmark.node_type = type_to_s
+
 local walk_ast = function(cur)
    collectgarbage("stop")  -- without this we get segfault on linux, why?
-   level = 0
    while cur ~= nil do
-      coroutine.yield('start', cur, level)
+      coroutine.yield('begin', cur)
       child = cmark.node_first_child(cur)
       if child == nil then
-         coroutine.yield('end', cur, level)
+         coroutine.yield('end', cur)
          next = cmark.node_next(cur)
          while next == nil do
             cur = cmark.node_parent(cur)
-            level = level - 1
             if cur == nil then
                break
             else
-               coroutine.yield('end', cur, level)
+               coroutine.yield('end', cur)
                next = cmark.node_next(cur)
             end
          end
          cur = next
       else
-         level = level + 1
          cur = child
       end
    end
@@ -198,8 +225,8 @@ end
 cmark.walk = function(cur)
    local co = coroutine.create(function() walk_ast(cur) end)
    return function()  -- iterator
-      local status, direction, res, level = coroutine.resume(co)
-      return direction, res, level
+      local status, direction, node = coroutine.resume(co)
+      return direction, node
    end
 end
 
