@@ -168,6 +168,7 @@ cmark.render_ast = compose(ffi.string, c.cmark_render_ast)
 cmark.render_html = compose(ffi.string, c.cmark_render_html)
 
 local walk_ast = function(cur)
+   collectgarbage("stop")  -- without this we get segfault on linux, why?
    level = 0
    while cur ~= nil do
       coroutine.yield('start', cur, level)
@@ -191,6 +192,7 @@ local walk_ast = function(cur)
          cur = child
       end
    end
+   collectgarbage("restart")
 end
 
 cmark.walk = function(cur)

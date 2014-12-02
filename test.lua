@@ -56,7 +56,7 @@ writer.enter_DOCUMENT = function()
    io.write("DOC!")
 end
 writer.mt.__index = function(table, key)
-   return function(node)
+   return function(node, level)
       key:gsub('([^_]*)_(.*)',
                function(direction, node_type)
                   local indent = string.rep('  ', level)
@@ -82,7 +82,7 @@ end
 
 for direction, node, level in cmark.walk(doc) do
    local key = direction .. '_' .. type_table[tonumber(cmark.node_get_type(node))]
-   writer[key](node)
+   writer[key](node, level)
 end
 
 -- local html = cmark.render_html(doc)
