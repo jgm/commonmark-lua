@@ -1,0 +1,3 @@
+segfault:
+
+ python -c 'print ">" * 80 + " aa"' | ./test.lua
