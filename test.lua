@@ -9,30 +9,6 @@ local cur = doc
 local next
 local child
 
-local walk = function(action)
-   level = 0
-   while cur ~= nil do
-      action(cur, level)
-      child = cmark.node_first_child(cur)
-      if child == nil then
-         next = cmark.node_next(cur)
-         while next == nil do
-            cur = cmark.node_parent(cur)
-            level = level - 1
-            if cur == nil then
-               break
-            else
-               next = cmark.node_next(cur)
-            end
-         end
-         cur = next
-      else
-         level = level + 1
-         cur = child
-      end
-   end
-end
-
 local type_table = {
    'BLOCK_QUOTE',
    'LIST',
@@ -64,7 +40,9 @@ local function print_type(node, level)
    io.write('\n')
 end
 
-walk(print_type)
+for node, level in cmark.walk(doc) do
+   print_type(node, level)
+end
 
 -- local html = ffi.string(cmark.render_html(doc))
 -- print(html)

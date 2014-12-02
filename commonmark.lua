@@ -160,4 +160,36 @@ cmark.parse_document = c.cmark_parse_document
 cmark.render_ast = c.cmark_render_ast
 cmark.render_html = c.cmark_render_html
 
+local walk_ast = function(cur)
+   level = 0
+   while cur ~= nil do
+      coroutine.yield(cur, level)
+      child = cmark.node_first_child(cur)
+      if child == nil then
+         next = cmark.node_next(cur)
+         while next == nil do
+            cur = cmark.node_parent(cur)
+            level = level - 1
+            if cur == nil then
+               break
+            else
+               next = cmark.node_next(cur)
+            end
+         end
+         cur = next
+      else
+         level = level + 1
+         cur = child
+      end
+   end
+end
+
+cmark.walk = function(cur)
+   local co = coroutine.create(function() walk_ast(cur) end)
+   return function()  -- iterator
+      local status, res, level = coroutine.resume(co)
+      return res, level
+   end
+end
+
 return cmark
