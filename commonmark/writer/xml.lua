@@ -133,12 +133,12 @@ function M.new(options)
 
   function W.inline_code(node)
      selfclosingtag('inline_code',
-                    {text = cmark.node_get_string_content(node)})
+                    {text = cmark.node_get_string_content(node)})(node)
   end
 
   function W.inline_html(node)
      selfclosingtag('inline_html',
-                    {text = cmark.node_get_string_content(node)})
+                    {text = cmark.node_get_string_content(node)})(node)
   end
 
   W.begin_emph = opentag('emph')
