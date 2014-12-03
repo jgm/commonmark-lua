@@ -75,17 +75,13 @@ function M.new(options)
 
   W.end_block_quote = closetag('block_quote')
 
-  function W.begin_list(node)
-  end
+  W.begin_list = opentag('list')
 
-  function W.end_list(node)
-  end
+  W.end_list = closetag('list')
 
-  function W.begin_list_item(node)
-  end
+  W.begin_list_item = opentag('list_item')
 
-  function W.end_list_item(node)
-  end
+  W.end_list_item = closetag('list_item')
 
   function W.code_block(node)
   end
@@ -131,7 +127,7 @@ function M.new(options)
   end
 
   function W.inline_code(node)
-     out(cmark.node_get_string_content(node))
+     W.out(cmark.node_get_string_content(node))
   end
 
   function W.inline_html(node)
