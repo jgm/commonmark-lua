@@ -16,9 +16,12 @@ function M.new(options)
 
    local W = {}
    local meta = {}
+   local buffer = {}
+   local warnings = {}
+
    meta.__index =
       function(_, key)
-         io.stderr:write(string.format("WARNING: Undefined writer function '%s'\n",key))
+         table.insert(warnings, string.format("Undefined writer function '%s'",key))
          return (function(node) end)
       end
    setmetatable(W, meta)
@@ -34,13 +37,27 @@ function M.new(options)
       W.containersep = "\n"
    end
 
+   function W.out(s)
+      table.insert(buffer, s)
+   end
+
    function W.render(doc)
-      W.buffer = {}
+      buffer = {}
+      warnings = {}
       for direction, node in cmark.walk(doc) do
          local key = direction .. '_' .. cmark.node_type(node)
          W[key](node)
       end
-      return table.concat(W.buffer)
+      return table.concat(buffer)
+   end
+
+   function W.warnings()
+      local i = 0
+      local n = table.getn(warnings)
+      return function ()
+         i = i + 1
+         if i <= n then return warnings[i] end
+      end
    end
 
   function W.begin_document()
