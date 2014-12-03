@@ -9,10 +9,6 @@ local inp = io.read("*all")
 local doc = cmark.parse_document(inp, string.len(inp))
 
 writer = generic.new()
-writer.begin_text = function(node)
-   writer.out(cmark.node_get_string_content(node))
-   writer.out('\n')
-end
 print(writer.render(doc))
 
 print("WARNINGS:")
