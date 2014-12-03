@@ -190,27 +190,51 @@ local type_table = {
 }
 type_table[0] = 'document'
 
-type_to_s = function(node)
+local type_to_s = function(node)
    return type_table[tonumber(c.cmark_node_get_type(node))]
 end
 
 -- return node type as string
 cmark.node_type = type_to_s
 
+local can_have_children = function(node)
+   local node_type = cmark.node_get_type(node)
+   return (node_type == cmark.DOCUMENT or
+           node_type == cmark.BLOCK_QUOTE or
+           node_type == cmark.LIST or
+           node_type == cmark.LIST_ITEM or
+           node_type == cmark.HEADER or
+           node_type == cmark.PARAGRAPH or
+           node_type == cmark.REFERENCE_DEF or
+           node_type == cmark.EMPH or
+           node_type == cmark.STRONG or
+           node_type == cmark.LINK or
+           node_type == cmark.IMAGE)
+end
+
+cmark.can_have_children = can_have_children
+
 local walk_ast = function(cur)
    collectgarbage("stop")  -- without this we get segfault on linux, why?
    while cur ~= nil do
-      coroutine.yield('begin', cur)
-      child = cmark.node_first_child(cur)
+      if can_have_children(cur) then
+         coroutine.yield(cur, 'begin')
+         child = cmark.node_first_child(cur)
+         if child == nil then
+            coroutine.yield(cur, 'end')
+         end
+      else
+         coroutine.yield(cur, nil)
+         child = nil
+      end
       if child == nil then
-         coroutine.yield('end', cur)
          next = cmark.node_next(cur)
          while next == nil do
             cur = cmark.node_parent(cur)
             if cur == nil then
                break
             else
-               coroutine.yield('end', cur)
+               coroutine.yield(cur, 'end')
                next = cmark.node_next(cur)
             end
          end

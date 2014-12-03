@@ -51,8 +51,13 @@ function M.new(options)
    function W.render(doc)
       buffer = {}
       warnings = {}
-      for direction, node in cmark.walk(doc) do
-         local key = direction .. '_' .. cmark.node_type(node)
+      for node, direction in cmark.walk(doc) do
+         local key
+         if direction then
+            key = direction .. '_' .. cmark.node_type(node)
+         else
+            key = cmark.node_type(node)
+         end
          W[key](node)
       end
       return table.concat(buffer)
@@ -91,16 +96,10 @@ function M.new(options)
   function W.end_list_item(node)
   end
 
-  function W.begin_code_block(node)
+  function W.code_block(node)
   end
 
-  function W.end_code_block(node)
-  end
-
-  function W.begin_html(node)
-  end
-
-  function W.end_html(node)
+  function W.html(node)
   end
 
   function W.begin_paragraph(node)
@@ -117,10 +116,7 @@ function M.new(options)
      cr()
   end
 
-  function W.begin_hrule(node)
-  end
-
-  function W.end_hrule(node)
+  function W.hrule(node)
   end
 
   function W.begin_reference_def(node)
@@ -129,38 +125,23 @@ function M.new(options)
   function W.end_reference_def(node)
   end
 
-  function W.begin_text(node)
+  function W.text(node)
      out(cmark.node_get_string_content(node))
   end
 
-  function W.end_text(node)
-  end
-
-  function W.begin_softbreak(node)
+  function W.softbreak(node)
      cr()
   end
 
-  function W.end_softbreak(node)
-  end
-
-  function W.begin_linebreak(node)
+  function W.linebreak(node)
      cr()
   end
 
-  function W.end_linebreak(node)
-  end
-
-  function W.begin_inline_code(node)
+  function W.inline_code(node)
      out(cmark.node_get_string_content(node))
   end
 
-  function W.end_inline_code(node)
-  end
-
-  function W.begin_inline_html(node)
-  end
-
-  function W.end_inline_html(node)
+  function W.inline_html(node)
   end
 
   function W.begin_emph(node)
