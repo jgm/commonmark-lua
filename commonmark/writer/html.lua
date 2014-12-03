@@ -7,6 +7,8 @@ function M.new(options)
 
   local W = xml.new(options)
 
+  local tight_stack = {}
+
   local escape = function(s)
      return string.gsub(s, '[<>&"]',
                   function(c)
@@ -16,6 +18,37 @@ function M.new(options)
                      elseif c == '"' then return "&quot;"
                      end
      end)
+  end
+
+  function urlencode(str)
+     if (str) then
+        str = string.gsub(str, "\n", "\r\n")
+        str = string.gsub(str, "([^%w_.@/:%%+?&= -])",
+                          function(c)
+                             if #c == 1 then
+                                return string.format("%%%02X",
+                                                     string.byte(c))
+                             end
+        end)
+        str = string.gsub (str, " ", "+")
+     end
+     return str
+  end
+
+  function W.set_tight(tight)
+     table.insert(tight_stack, tight)
+  end
+
+  function W.reset_tight()
+     table.remove(tight_stack)
+  end
+
+  function W.is_tight()
+     if #tight_stack == 0 then
+        return false
+     else
+        return tight_stack[#tight_stack]
+     end
   end
 
   function W.tag_open(tag, attrs)
@@ -87,7 +120,7 @@ function M.new(options)
         tag = 'ul'
      end
      local tight = cmark.node_get_list_tight(node)
-     -- TODO do something with this!
+     W.set_tight(tight)
      local start = cmark.node_get_list_start(node)
      if start ~= 1 then
         attrs.start = start
@@ -103,12 +136,15 @@ function M.new(options)
         tag = 'ul'
      end
      closetag('ul')(node)
+     W.reset_tight()
      cr()
   end
 
   W.begin_list_item = function(node)
      opentag('li')(node)
-     cr()
+     if not W.is_tight then
+        cr()
+     end
   end
 
   W.end_list_item = function(node)
@@ -134,11 +170,17 @@ function M.new(options)
      out(cmark.node_get_string_content(node))
   end
 
-  W.begin_paragraph = opentag('p')
+  function W.begin_paragraph(node)
+     if not W.is_tight() then
+        opentag('p')(node)
+     end
+  end
 
   function W.end_paragraph(node)
-     closetag('p')(node)
-     cr()
+     if not W.is_tight() then
+        closetag('p')(node)
+        cr()
+     end
   end
 
   function W.begin_header(node)
@@ -193,7 +235,7 @@ function M.new(options)
      if #title > 0 then
         attrs.title = title
      end
-     attrs.href = cmark.node_get_url(node)
+     attrs.href = urlencode(cmark.node_get_url(node))
      opentag('a', attrs)(node)
   end
 
@@ -210,7 +252,7 @@ function M.new(options)
      if #title > 0 then
         attrs.title = title
      end
-     attrs.src   = cmark.node_get_url(node)
+     attrs.src   = urlencode(cmark.node_get_url(node))
      selfclosingtag('img', attrs)(node)
   end
 
