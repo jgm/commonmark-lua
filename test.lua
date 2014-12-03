@@ -9,10 +9,9 @@ local inp = io.read("*all")
 local doc = cmark.parse_document(inp, string.len(inp))
 
 writer = xml.new()
-print(writer.render(doc))
+io.write(writer.render(doc))
 
-print("WARNINGS:")
 for warning in writer.warnings() do
-   print(warning)
+   print('WARNING', warning)
 end
 
