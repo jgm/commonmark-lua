@@ -45,17 +45,35 @@ function M.new(options)
      W.out(' />')
   end
 
-  function W.begin_document(node)
+  local opentag = function(tag, attrs)
+     return function(node)
+        W.tag_open(tag, attrs)
+        W.increase_indent()
+        W.cr()
+     end
   end
 
-  function W.end_document(node)
+  local closetag = function(tag, attrs)
+     return function(node)
+        W.decrease_indent()
+        W.tag_close(tag, attrs)
+        W.cr()
+     end
   end
 
-  function W.begin_block_quote(node)
+  local selfclosingtag = function(tag, attrs)
+     return function(node)
+        W.tag_selfclosing(tag, attrs)
+     end
   end
 
-  function W.end_block_quote(node)
-  end
+  W.begin_document = opentag('document')
+
+  W.end_document = closetag('document')
+
+  W.begin_block_quote = opentag('block_quote')
+
+  W.end_block_quote = closetag('block_quote')
 
   function W.begin_list(node)
   end
