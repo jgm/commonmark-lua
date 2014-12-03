@@ -42,11 +42,17 @@ function M.new(options)
      table.remove(tight_stack)
   end
 
-  function W.is_tight()
+  function W.is_tight(node)
      if #tight_stack == 0 then
         return false
      else
-        return (tight_stack[#tight_stack] == 1)
+        local parent = cmark.node_parent(node)
+        local parent_type = cmark.node_get_type(parent)
+        if parent_type == cmark.LIST or parent_type == cmark.LIST_ITEM then
+           return (tight_stack[#tight_stack] == 1)
+        else
+           return false
+        end
      end
   end
 
@@ -143,7 +149,7 @@ function M.new(options)
 
   W.begin_list_item = function(node)
      opentag('li')(node)
-     if not W.is_tight() then
+     if not W.is_tight(node) then
         cr()
      end
   end
@@ -174,14 +180,14 @@ function M.new(options)
   end
 
   function W.begin_paragraph(node)
-     if not W.is_tight() then
+     if not W.is_tight(node) then
         cr()
         opentag('p')(node)
      end
   end
 
   function W.end_paragraph(node)
-     if not W.is_tight() then
+     if not W.is_tight(node) then
         closetag('p')(node)
         cr()
      end
