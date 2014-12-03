@@ -18,6 +18,8 @@ function M.new(options)
      end)
   end
 
+  W.escape = escape
+
   function W.tag_open(tag, attrs)
      W.indent()
      W.out('<' .. tag)
