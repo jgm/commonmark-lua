@@ -24,6 +24,19 @@ function M.new(options)
    end
    W.out = out
 
+  local storing = false
+  local stored_buffer = {}
+
+  function W.store()
+     storing = true
+     stored_buffer = {}
+  end
+
+  function W.recall()
+     storing = false
+     return table.concat(stored_buffer)
+  end
+
   W.indent_level = 0
   W.indent_step = 2
 
