@@ -8,7 +8,7 @@ function M.new(options)
   local W = generic.new(options)
 
   local escape = function(s)
-     return string.gsub(s, '.',
+     return string.gsub(s, '[<>&"]',
                   function(c)
                      if c == '<' then return "&lt;"
                      elseif c == '>' then return "&gt;"
@@ -122,7 +122,7 @@ function M.new(options)
   W.hrule = selfclosingtag('hrule')
 
   function W.text(node)
-     local t = escape(cmark.node_get_string_content(node))
+     local t = cmark.node_get_string_content(node)
      W.tag_selfclosing('text', {text = t})
      W.cr()
   end
