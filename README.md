@@ -15,7 +15,8 @@ the AST) and an `html` writer (which passes the CommonMark spec
 tests).
 
 Writers can easily be customized.  For example, suppose you want
-to print all strings uppercase:
+to render all regular text content uppercase, leaving code and
+HTML tags alone:
 
 ``` lua
 #!/usr/bin/env luajit
