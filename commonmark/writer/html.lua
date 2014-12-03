@@ -23,14 +23,13 @@ function M.new(options)
   function urlencode(str)
      if (str) then
         str = string.gsub(str, "\n", "\r\n")
-        str = string.gsub(str, "([^%w_.@/:%%+?&= -])",
+        str = string.gsub(str, "([^%w_.@/:%%+()*?&=-])",
                           function(c)
                              if #c == 1 then
                                 return string.format("%%%02X",
                                                      string.byte(c))
                              end
         end)
-        str = string.gsub (str, " ", "+")
      end
      return str
   end
@@ -47,7 +46,7 @@ function M.new(options)
      if #tight_stack == 0 then
         return false
      else
-        return tight_stack[#tight_stack]
+        return (tight_stack[#tight_stack] == 1)
      end
   end
 
@@ -102,6 +101,7 @@ function M.new(options)
   W.end_document = function() return end
 
   W.begin_block_quote = function(node)
+     cr()
      opentag('blockquote')(node)
      cr()
   end
@@ -142,7 +142,7 @@ function M.new(options)
 
   W.begin_list_item = function(node)
      opentag('li')(node)
-     if not W.is_tight then
+     if not W.is_tight() then
         cr()
      end
   end
@@ -157,8 +157,8 @@ function M.new(options)
      if #info > 0 then
         attrs = {class = 'language-' .. string.gsub(info,' .*$','')}
      end
-     opentag('pre', attrs)(node)
-     opentag('code')(node)
+     opentag('pre')(node)
+     opentag('code',attrs)(node)
      out(escape(cmark.node_get_string_content(node)))
      cr()
      closetag('code')(node)
