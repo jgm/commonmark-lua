@@ -19,11 +19,6 @@ function M.new(options)
       end
    setmetatable(W, meta)
 
-   local out = function(s)
-      table.insert(buffer, s)
-   end
-   W.out = out
-
   local storing = false
   local stored_buffer = {}
 
@@ -36,6 +31,15 @@ function M.new(options)
      storing = false
      return table.concat(stored_buffer)
   end
+
+   local out = function(s)
+      if storing then
+         table.insert(stored_buffer, s)
+      else
+         table.insert(buffer, s)
+      end
+   end
+   W.out = out
 
   W.indent_level = 0
   W.indent_step = 2
