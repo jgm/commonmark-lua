@@ -9,6 +9,8 @@ function M.new(options)
 
   local tight_stack = {}
 
+  local notags = 0
+
   local escape = function(s)
      return string.gsub(s, '[<>&"]',
                   function(c)
@@ -57,6 +59,7 @@ function M.new(options)
   end
 
   function W.tag_open(tag, attrs)
+     if notags > 0 then return end
      W.out('<' .. tag)
      if attrs then
         for k, v in pairs(attrs) do
@@ -67,10 +70,12 @@ function M.new(options)
   end
 
   function W.tag_close(tag)
+     if notags > 0 then return end
      W.out('</' .. tag .. '>')
   end
 
   function W.tag_selfclosing(tag, attrs)
+     if notags > 0 then return end
      W.out('<' .. tag)
      if attrs then
         for k, v in pairs(attrs) do
@@ -215,11 +220,12 @@ function M.new(options)
   end
 
   W.softbreak = function(node)
-     out('\n')
+     cr()
   end
 
   W.linebreak = function(node)
-     out('<br />\n')
+     selfclosingtag('br')(node)
+     cr()
   end
 
   function W.inline_code(node)
@@ -253,18 +259,26 @@ function M.new(options)
   W.end_link = closetag('a')
 
   function W.begin_image(node)
-     W.store()
+     if notags == 0 then
+        out('<img src="')
+        out(urlencode(cmark.node_get_url(node)))
+        out('"')
+        local title = cmark.node_get_title(node)
+        if #title > 0 then
+           out(' title="')
+           out(title)
+           out('"')
+        end
+        out(' alt="')
+        notags = notags + 1
+     end
   end
 
   function W.end_image(node)
-     local attrs = {}
-     attrs.alt = string.gsub(W.recall(), '[<][^>]*[>]', '')
-     local title = cmark.node_get_title(node)
-     if #title > 0 then
-        attrs.title = title
+     notags = notags - 1
+     if notags == 0 then
+        out('" />')
      end
-     attrs.src   = urlencode(cmark.node_get_url(node))
-     selfclosingtag('img', attrs)(node)
   end
 
   return W
