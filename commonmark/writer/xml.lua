@@ -75,7 +75,20 @@ function M.new(options)
 
   W.end_block_quote = closetag('block_quote')
 
-  W.begin_list = opentag('list')
+  W.begin_list = function(node)
+     attrs = {}
+     if cmark.node_get_list_type(node) == cmark.ORDERED_LIST then
+        attrs.type = 'ordered'
+     else
+        attrs.type = 'bullet'
+     end
+     if cmark.node_get_list_tight(node) then
+        attrs.tight = 'true'
+     else
+        attrs.tight = 'false'
+     end
+     opentag('list', attrs)(node)
+  end
 
   W.end_list = closetag('list')
 
