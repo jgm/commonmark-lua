@@ -20,21 +20,20 @@ function M.new(options)
    setmetatable(W, meta)
 
   local storing = false
-  local stored_buffer = {}
+  local stored_buffers = {}
 
   function W.store()
-     storing = true
-     stored_buffer = {}
+     table.insert(stored_buffers, {})
   end
 
   function W.recall()
-     storing = false
-     return table.concat(stored_buffer)
+     local stored_buf = table.remove(stored_buffers)
+     return table.concat(stored_buf)
   end
 
    local out = function(s)
-      if storing then
-         table.insert(stored_buffer, s)
+      if #stored_buffers > 0 then
+         table.insert(stored_buffers[#stored_buffers], s)
       else
          table.insert(buffer, s)
       end

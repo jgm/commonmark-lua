@@ -60,6 +60,8 @@ function M.new(options)
      end
   end
 
+  local out = W.out
+
   local cr = W.cr
 
   W.begin_document = function() return end
@@ -74,6 +76,7 @@ function M.new(options)
   W.end_block_quote = function(node)
      cr()
      closetag('blockquote')(node)
+     cr()
   end
 
   W.begin_list = function(node)
@@ -83,12 +86,12 @@ function M.new(options)
      else
         tag = 'ul'
      end
-     if cmark.node_get_list_tight(node) then
-        attrs.tight = 'true'
-     else
-        attrs.tight = 'false'
+     local tight = cmark.node_get_list_tight(node)
+     -- TODO do something with this!
+     local start = cmark.node_get_list_start(node)
+     if start ~= 1 then
+        attrs.start = start
      end
-     attrs.start = cmark.node_get_list_start(node)
      opentag(tag, attrs)(node)
      cr()
   end
@@ -103,7 +106,10 @@ function M.new(options)
      cr()
   end
 
-  W.begin_list_item = opentag('li')
+  W.begin_list_item = function(node)
+     opentag('li')(node)
+     cr()
+  end
 
   W.end_list_item = function(node)
      closetag('li')(node)
@@ -111,17 +117,29 @@ function M.new(options)
   end
 
   function W.code_block(node)
-     selfclosingtag('code_block',
-                    {text = cmark.node_get_string_content(node)})
+     local info = cmark.node_get_fence_info(node)
+     if #info > 0 then
+        attrs = {class = 'language-' .. string.gsub(info,' .*$','')}
+     end
+     opentag('pre', attrs)(node)
+     opentag('code')(node)
+     out(escape(cmark.node_get_string_content(node)))
+     cr()
+     closetag('code')(node)
+     closetag('pre')(node)
+     cr()
   end
 
   function W.html(node)
-     W.out(cmark.node_get_string_content(node))
+     out(cmark.node_get_string_content(node))
   end
 
   W.begin_paragraph = opentag('p')
 
-  W.end_paragraph = closetag('p')
+  function W.end_paragraph(node)
+     closetag('p')(node)
+     cr()
+  end
 
   function W.begin_header(node)
      local level = cmark.node_get_header_level(node)
@@ -131,30 +149,34 @@ function M.new(options)
   function W.end_header(node)
      local level = cmark.node_get_header_level(node)
      closetag('h' .. level)(node)
+     cr()
   end
 
-  W.hrule = selfclosingtag('hr')
+  function W.hrule(node)
+     selfclosingtag('hr')(node)
+     cr()
+  end
 
   function W.text(node)
-     W.out(escape(cmark.node_get_string_content(node)))
+     out(escape(cmark.node_get_string_content(node)))
   end
 
   W.softbreak = function(node)
-     W.out('\n')
+     out('\n')
   end
 
   W.linebreak = function(node)
-     W.out('<br />')
+     out('<br />')
   end
 
   function W.inline_code(node)
-     selfclosingtag('inline_code',
-                    {text = cmark.node_get_string_content(node)})(node)
+     opentag('code')(node)
+     out(escape(cmark.node_get_string_content(node)))
+     closetag('code')(node)
   end
 
   function W.inline_html(node)
-     selfclosingtag('inline_html',
-                    {text = cmark.node_get_string_content(node)})(node)
+     out(cmark.node_get_string_content(node))
   end
 
   W.begin_emph = opentag('em')
@@ -172,7 +194,7 @@ function M.new(options)
         attrs.title = title
      end
      attrs.href = cmark.node_get_url(node)
-     opentag('link', attrs)(node)
+     opentag('a', attrs)(node)
   end
 
   W.end_link = closetag('a')
