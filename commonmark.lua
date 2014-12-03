@@ -95,12 +95,16 @@ ffi.cdef[[
 
 local cmark = {}
 
-local compose = function(f,g)
+local as_string = function(f)
    return function(x)
-      return f(g(x))
+      local result = f(x)
+      if result == nil then
+         return ""
+      else
+         return ffi.string(result)
+      end
    end
 end
-
 
 cmark.DOCUMENT      = c.CMARK_NODE_DOCUMENT
 cmark.BLOCK_QUOTE   = c.CMARK_NODE_BLOCK_QUOTE
@@ -126,7 +130,7 @@ cmark.BULLET_LIST   = c.CMARK_BULLET_LIST
 cmark.ORDERED_LIST  = c.CMARK_ORDERED_LIST
 cmark.PERIOD_DELIM  = c.CMARK_PERIOD_DELIM
 cmark.PAREN_DELIM   = c.CMARK_PAREN_DELIM
-cmark.markdown_to_html = compose(ffi.string, c.cmark_markdown_to_html)
+cmark.markdown_to_html = as_string(c.cmark_markdown_to_html)
 cmark.node_new = c.cmark_node_new
 cmark.node_free = c.cmark_node_free
 cmark.node_next = c.cmark_node_next
@@ -136,7 +140,7 @@ cmark.node_first_child = c.cmark_node_first_child
 cmark.node_last_child = c.cmark_node_last_child
 cmark.node_get_type = c.cmark_node_get_type
 cmark.node_get_string_content =
-   compose(ffi.string, c.cmark_node_get_string_content)
+   as_string(c.cmark_node_get_string_content)
 cmark.node_set_string_content = c.cmark_node_set_string_content
 cmark.node_get_header_level = c.cmark_node_get_header_level
 cmark.node_set_header_level = c.cmark_node_set_header_level
@@ -146,11 +150,11 @@ cmark.node_get_list_start = c.cmark_node_get_list_start
 cmark.node_set_list_start = c.cmark_node_set_list_start
 cmark.node_get_list_tight = c.cmark_node_get_list_tight
 cmark.node_set_list_tight = c.cmark_node_set_list_tight
-cmark.node_get_fence_info = compose(ffi.string, c.cmark_node_get_fence_info)
+cmark.node_get_fence_info = as_string(c.cmark_node_get_fence_info)
 cmark.node_set_fence_info = c.cmark_node_set_fence_info
-cmark.node_get_url = compose(ffi.string, c.cmark_node_get_url)
+cmark.node_get_url = as_string(c.cmark_node_get_url)
 cmark.node_set_url = c.cmark_node_set_url
-cmark.node_get_title = compose(ffi.string, c.cmark_node_get_title)
+cmark.node_get_title = as_string(c.cmark_node_get_title)
 cmark.node_set_title = c.cmark_node_set_title
 cmark.node_get_start_line = c.cmark_node_get_start_line
 cmark.node_get_start_column = c.cmark_node_get_start_column
@@ -165,8 +169,8 @@ cmark.parser_free = c.cmark_parser_free
 cmark.parser_finish = c.cmark_parser_finish
 cmark.parser_feed = c.cmark_parser_feed
 cmark.parse_document = c.cmark_parse_document
-cmark.render_ast = compose(ffi.string, c.cmark_render_ast)
-cmark.render_html = compose(ffi.string, c.cmark_render_html)
+cmark.render_ast = as_string(c.cmark_render_ast)
+cmark.render_html = as_string(c.cmark_render_html)
 
 local type_table = {
    'block_quote',

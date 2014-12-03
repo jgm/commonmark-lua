@@ -64,6 +64,7 @@ function M.new(options)
   local selfclosingtag = function(tag, attrs)
      return function(node)
         W.tag_selfclosing(tag, attrs)
+        W.cr()
      end
   end
 
@@ -97,84 +98,73 @@ function M.new(options)
   W.end_list_item = closetag('list_item')
 
   function W.code_block(node)
+     selfclosingtag('code_block',
+                    {text = cmark.node_get_string_content(node)})
   end
 
   function W.html(node)
+     selfclosingtag('html',
+                    {text = cmark.node_get_string_content(node)})
   end
 
-  function W.begin_paragraph(node)
-  end
+  W.begin_paragraph = opentag('paragraph')
 
-  function W.end_paragraph(node)
-  end
+  W.end_paragraph = closetag('paragraph')
 
   function W.begin_header(node)
+     local level = cmark.node_get_header_level(node)
+     local attrs = { level = level }
+     opentag('header', attrs)(node)
   end
 
-  function W.end_header(node)
-     W.cr()
-  end
+  W.end_header = closetag('header')
 
-  function W.hrule(node)
-  end
-
-  function W.begin_reference_def(node)
-  end
-
-  function W.end_reference_def(node)
-  end
+  W.hrule = selfclosingtag('hrule')
 
   function W.text(node)
      local t = escape(cmark.node_get_string_content(node))
-     W.tag_selfclosing('text', {value = t})
+     W.tag_selfclosing('text', {text = t})
      W.cr()
   end
 
-  function W.softbreak(node)
-     W.tag_selfclosing('softbreak')
-     W.cr()
-  end
+  W.softbreak = selfclosingtag('softbreak')
 
-  function W.linebreak(node)
-     cr()
-  end
+  W.linebreak = selfclosingtag('linebreak')
 
   function W.inline_code(node)
-     W.out(cmark.node_get_string_content(node))
+     selfclosingtag('inline_code',
+                    {text = cmark.node_get_string_content(node)})
   end
 
   function W.inline_html(node)
+     selfclosingtag('inline_html',
+                    {text = cmark.node_get_string_content(node)})
   end
 
-  function W.begin_emph(node)
-     W.tag_open('emph')
-     W.increase_indent()
-     W.cr()
-  end
+  W.begin_emph = opentag('emph')
 
-  function W.end_emph(node)
-     W.decrease_indent()
-     W.tag_close('emph')
-     W.cr()
-  end
+  W.end_emph = closetag('emph')
 
-  function W.begin_strong(node)
-  end
+  W.begin_strong = opentag('strong')
 
-  function W.end_strong(node)
-  end
+  W.end_strong = closetag('strong')
 
   function W.begin_link(node)
+     local title = cmark.node_get_title(node)
+     local url = cmark.node_get_url(node)
+     opentag('link', {title = title, url = url})(node)
   end
 
-  function W.end_link(node)
-  end
+  W.end_link = closetag('link')
 
   function W.begin_image(node)
+     local attrs = {
+        title = cmark.node_get_title(node),
+        url = cmark.node_get_url(node) }
+     opentag('image', attrs)(node)
   end
 
-  function W.end_image(node)
-  end
+  W.end_image = closetag('image')
 
   return W
 
