@@ -88,6 +88,7 @@ function M.new(options)
      else
         attrs.tight = 'false'
      end
+     attrs.start = cmark.node_get_list_start(node)
      opentag('list', attrs)(node)
   end
 
