@@ -7,9 +7,6 @@ function M.new(options)
 
   local W = generic.new(options)
 
-  W.indent_level = 0
-  W.indent_step = 2
-
   local escape = function(s)
      return string.gsub(s, '.',
                   function(c)
@@ -19,18 +16,6 @@ function M.new(options)
                      elseif c == '"' then return "&quot;"
                      end
      end)
-  end
-
-  function W.indent()
-     W.out(string.rep(' ', W.indent_level * W.indent_step))
-  end
-
-  function W.increase_indent()
-     W.indent_level = W.indent_level + 1
-  end
-
-  function W.decrease_indent()
-     W.indent_level = W.indent_level - 1
   end
 
   function W.tag_open(tag, attrs)
@@ -100,7 +85,7 @@ function M.new(options)
   end
 
   function W.end_header(node)
-     cr()
+     W.cr()
   end
 
   function W.hrule(node)

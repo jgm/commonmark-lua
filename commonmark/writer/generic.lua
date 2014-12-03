@@ -24,6 +24,21 @@ function M.new(options)
    end
    W.out = out
 
+  W.indent_level = 0
+  W.indent_step = 2
+
+  function W.indent()
+     W.out(string.rep(' ', W.indent_level * W.indent_step))
+  end
+
+  function W.increase_indent()
+     W.indent_level = W.indent_level + 1
+  end
+
+  function W.decrease_indent()
+     W.indent_level = W.indent_level - 1
+  end
+
    -- ensure a newline if there isn't one already
    local cr = function()
       local laststr = buffer[#buffer]
