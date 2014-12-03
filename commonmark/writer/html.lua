@@ -219,7 +219,7 @@ function M.new(options)
   end
 
   W.linebreak = function(node)
-     out('<br />')
+     out('<br />\n')
   end
 
   function W.inline_code(node)
