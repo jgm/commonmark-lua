@@ -113,6 +113,7 @@ function M.new(options)
   end
 
   W.begin_list = function(node)
+     cr()
      attrs = {}
      if cmark.node_get_list_type(node) == cmark.ORDERED_LIST then
         tag = 'ol'
@@ -135,7 +136,7 @@ function M.new(options)
      else
         tag = 'ul'
      end
-     closetag('ul')(node)
+     closetag(tag)(node)
      W.reset_tight()
      cr()
   end
@@ -153,25 +154,28 @@ function M.new(options)
   end
 
   function W.code_block(node)
+     cr()
      local info = cmark.node_get_fence_info(node)
+     attrs = {}
      if #info > 0 then
-        attrs = {class = 'language-' .. string.gsub(info,' .*$','')}
+        attrs.class = 'language-' .. string.gsub(info,' .*$','')
      end
      opentag('pre')(node)
      opentag('code',attrs)(node)
      out(escape(cmark.node_get_string_content(node)))
-     cr()
      closetag('code')(node)
      closetag('pre')(node)
      cr()
   end
 
   function W.html(node)
+     cr()
      out(cmark.node_get_string_content(node))
   end
 
   function W.begin_paragraph(node)
      if not W.is_tight() then
+        cr()
         opentag('p')(node)
      end
   end
@@ -195,6 +199,7 @@ function M.new(options)
   end
 
   function W.hrule(node)
+     cr()
      selfclosingtag('hr')(node)
      cr()
   end
