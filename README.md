@@ -1,3 +1,5 @@
+**Deprecated** in favor of [cmark-lua](https://github.com/jgm/cmark-lua)
+
 commonmark-lua
 ==============
 
